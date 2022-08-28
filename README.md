@@ -1,19 +1,42 @@
 # sd-enable-textual-inversion
-Copy these files to your stable-diffusion to enable text-inversion
+Copy the files into your stable-diffusion folder to enable text-inversion in the Web UI.
 
-any problems create an issue [here](https://github.com/hlky/stable-diffusion-webui) please
+If you experience any problems **with webui integration**, please create an issue [here](https://github.com/hlky/stable-diffusion-webui).
 
-# You don't upload an image, that's not how it works
+If you are having problems installing or running textual-inversion, see FAQ below. If your problem is not listed, the official repo is [here](https://github.com/rinongal/textual_inversion).
+
+
+# How does it work?
 
 [textual-inversion](https://textual-inversion.github.io/) - An Image is Worth One Word: Personalizing Text-to-Image Generation using Textual Inversion (credit: Tel Aviv University, NVIDIA)
 
 ![](https://textual-inversion.github.io/static/images/editing/teaser.JPG)
 
-We learn to generate specific concepts, like personal objects or artistic styles, by describing them using new "words" in the embedding space of pre-trained text-to-image models. These can be used in new sentences, just like any other word.
+Just as humans create unique words to describe what they see, this model learns to describe specific concepts, such as personal objects or artistic styles, and create a new "word" to represent that description. The model's description of that word is stored in an embedding file, which can then be referenced by other pre-trained text-to-image models. This process has been coined as "Textual Inversion."
 
 ![](https://textual-inversion.github.io/static/images/editing/puppet.JPG)
 
-You need to train embeddings then use the embedding file
+
+# How to Use
+
+Before you can do anything with the webui, you must first create embedding files by training the Textual-Inversion model. You will need 3-5 images of what you want the model to describe. You can use more images, but the paper recommends 5. For the best results, the images should be visually similar, and each image should be cropped to 512x512. Any other sizes will be rescaled (stretched).
+
+**Step 1:** Place 3-5 images of the object/art style/scene/etc. into an empty folder
+
+**Step 2:** In Anaconda run 
+`python main.py 
+  --base configs/latent-diffusion/txt2img-1p4B-finetune.yaml 
+  -t 
+  --actual_resume models/ldm/text2img-large/model.ckpt
+  -n <name this run>
+  --data_root path/to/image/folder
+  --gpus 1`
+
+**Step 3:** The model will continue to train until you stop it by entering CTRL+C. The recommended training time is 3000-7000 global steps. You can see what step the run is on in the progress bar. You can also monitor progress by reviewing the images at `logs/<your run name>/images`. I recommend sorting that folder by date modified, they tend to get jumbled up otherwise. 
+
+**Step 4:** Once stopped, you will find a number of embedding files under `logs/<your run name>/checkpoints`. The one you want is **embeddings.pt**.
+
+**Step 5:** In the WebUI, upload the embedding file you just created. Now, when writing a prompt, you can use `\*` to reference the object/art style/etc. 
 
 Training data is the images of the thing you want to train on, apparently you only need 3-5 but best practices for choosing the images themselves are currently unknown afaik
 
