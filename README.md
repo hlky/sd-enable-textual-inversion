@@ -5,6 +5,7 @@ If you experience any problems **with webui integration**, please create an issu
 
 If you are having problems installing or running textual-inversion, see FAQ below. If your problem is not listed, the official repo is [here](https://github.com/rinongal/textual_inversion).
 
+<br>
 
 # How does it work?
 
@@ -12,56 +13,145 @@ If you are having problems installing or running textual-inversion, see FAQ belo
 
 ![](https://textual-inversion.github.io/static/images/editing/teaser.JPG)
 
-Just as humans create unique words to describe what they see, this model learns to describe specific concepts, such as personal objects or artistic styles, and create a new "word" to represent that description. The model's description of that word is stored in an embedding file, which can then be referenced by other pre-trained text-to-image models. This process has been coined as "Textual Inversion."
+> We learn to generate specific concepts, like personal objects or artistic styles, by describing them using new "words" in the embedding space of pre-trained text-to-image models. These can be used in new sentences, just like any other word. 
 
-![](https://textual-inversion.github.io/static/images/editing/puppet.JPG)
+Essentially, this model will take some pictures of an object, style, etc. and learn how to describe it in a way that can be understood by text-to-image models such as Stable Diffusion. This allows you to reference specific things in your prompts, or concepts that are easier to express with pictures rather than words.
 
+<br>
 
 # How to Use
 
-Before you can do anything with the webui, you must first create embedding files by training the Textual-Inversion model. You will need 3-5 images of what you want the model to describe. You can use more images, but the paper recommends 5. For the best results, the images should be visually similar, and each image should be cropped to 512x512. Any other sizes will be rescaled (stretched).
+Before you can do anything with the WebUI, you must first create an embedding file by training the Textual-Inversion model. Alternatively, you can test with one of the pre-made embeddings from [here](https://github.com/hlky/sd-embeddings). In the WebUI, place the embeddings file in the embeddings file upload box. Then you can reference the embedding by using `*` in your prompt. 
 
-**Step 1:** Place 3-5 images of the object/art style/scene/etc. into an empty folder
+Examples from the paper:
+![](https://textual-inversion.github.io/static/images/editing/puppet.JPG)
 
-**Step 2:** In Anaconda run 
+<br>
+
+# How to Train Textual-Inversion
+
+**Note that these instructions are for training on your local device, instructions may vary for training in Colab.**
+
+You will need 3-5 images of what you want the model to describe. You can use more images, but the paper recommends 5. For the best results, the images should be visually similar, and each image should be cropped to 512x512. Any other sizes will be rescaled (stretched) and may produce strange results.
+
+<br>
+
+### **Step 1:** 
+
+Place 3-5 images of the object/artstyle/scene/etc. into an empty folder.
+
+<br>
+
+
+### **Step 2:** In Anaconda run 
+
 `python main.py 
-  --base configs/latent-diffusion/txt2img-1p4B-finetune.yaml 
+  --base configs/stable-diffusion/v1-finetune.yaml 
   -t 
   --actual_resume models/ldm/text2img-large/model.ckpt
   -n <name this run>
   --data_root path/to/image/folder
-  --gpus 1`
+  --gpus 1
+  --init-word <your init word>`
+  
+  > --gpus tells the script how many CUDA-enabled GPUs you want to use. Leave at 1 unless you know what you're doing.
+  > --init-word is a single word the model will start with when looking at your images for the first time. Should be simple, ie: "sculpture", "girl", "mountains"
 
-**Step 3:** The model will continue to train until you stop it by entering CTRL+C. The recommended training time is 3000-7000 global steps. You can see what step the run is on in the progress bar. You can also monitor progress by reviewing the images at `logs/<your run name>/images`. I recommend sorting that folder by date modified, they tend to get jumbled up otherwise. 
+<br>
 
-**Step 4:** Once stopped, you will find a number of embedding files under `logs/<your run name>/checkpoints`. The one you want is **embeddings.pt**.
 
-**Step 5:** In the WebUI, upload the embedding file you just created. Now, when writing a prompt, you can use `\*` to reference the object/art style/etc. 
+### **Step 3:** 
 
-Training data is the images of the thing you want to train on, apparently you only need 3-5 but best practices for choosing the images themselves are currently unknown afaik
+The model will continue to train until you stop it by entering CTRL+C. The recommended training time is 3000-7000 global steps. You can see what step the run is on in the progress bar. You can also monitor progress by reviewing the images at `logs/<your run name>/images`. I recommend sorting that folder by date modified, they tend to get jumbled up otherwise. 
 
-One thing I have noticed when I tried training is that it resizes the image to 512 without respecting aspect ratio so you may want to 'outcrop' your image to a square, it appears backgrounds are 'filtered' out somehow and the central concept of the image picked up on
+<br>
 
-2 :cherries: examples :cherries: based on the embeddings in the sd-embeddings repo below:
 
-![00254](https://user-images.githubusercontent.com/106811348/187011731-e0b0b48a-63c7-4ecc-81e6-104d1cb1e342.png)
+### **Step 4:** 
 
-![00184](https://user-images.githubusercontent.com/106811348/187011743-a4abd08e-2383-4207-95f5-c60f6d3183ba.png)
+Once stopped, you will find a number of embedding files under `logs/<your run name>/checkpoints`. The one you want is **embeddings.pt**.
 
-For training see:
+<br>
 
-[rinongal/textual_inversion](https://github.com/rinongal/textual_inversion)
 
-[nicolai256/Stable-textual-inversion_win](https://github.com/nicolai256/Stable-textual-inversion_win)
+### **Step 5:** 
 
-Please note: training uses a HUGE amount of vram, you will struggle to get it working on <12gb vram, I have but only by changing the size: 512 to size: 448 in this section of v1-finetune or lowmemory version: 
+In the WebUI, upload the embedding file you just created. Now, when writing a prompt, you can use `*` to reference the whatever the embedding file describes.
+
+> "A picture of * in the style of Rembrandt"
+> "A photo of * as a corgi"
+> "A coffee mug in the style of *"
+
+<br><br>
+
+# Pro tips
+
+Reminder: Official Repo here ==> [rinongal/textual_inversion](https://github.com/rinongal/textual_inversion)
+
+Unofficial fork, more stable on Windows (8/28/22) ==> [nicolai256/Stable-textual-inversion_win](https://github.com/nicolai256/Stable-textual-inversion_win)
+
+- When using embeddings in your prompts, the authors note that markers (`*`) are sensitive to puncutation. Avoid using periods or commas directly after `*`
+- The model tends to converge faster and provide more realistic results when using language such as "a photo of" or "* as a photograph" in your prompts
+- When training Textual-Inversion, the paper says that using more than 5 images leads to less cohesive results. Some users seem to disagree. Try experimenting.
+- When training, more than one init-word can be specified by adding them to the list at `initializer_words: ["sculpture", "ice"]` in `v1-finetune.yaml`. Order may matter (unconfirmed)
+
+<br>
+
+# FAQ
+
+### Q: How much VRAM does this require, why am I receiving a CUDA Out of Memory Error?
+
+**A:** This model is very VRAM heavy, with 20GB being the recommended amount. It is possible to run this model on a GPU with <12GB of VRAM, but no guarantee. Try changing `size: 512` to `size: 448` in `v1-finetune.yaml -> data: -> params:` for both `train:` and `validation:`. If that is not enough, then it's probably best to use a Colab notebook or other GPU hosting service to do your training.
+
+<br>
+
+### Q: Why am I receiving a "SIGUSR1" error? Why am I receiving an NCNN error? Why am I receiving `OSError: cannot open resource`?
+
+**A:** The script `main.py` was written without Windows in mind. 
+
+You will need to open `main.py` and add the following line after the last import near the top of the script:
+
+`os.environ["PL_TORCH_DISTRIBUTED_BACKEND"] = "gloo"`
+
+Next, find the following lines near the end of the script. Change `SIGUSR1` and `SIGUSR2` to `SIGTERM`:
+
 ```
-data:
-  target: main.DataModuleFromConfig
+import signal
+
+signal.signal(signal.SIGUSR1, melk)
+signal.signal(signal.SIGUSR2, divein)
 ```
 
-Alternatively you can test with an embedding from [here](https://github.com/hlky/sd-embeddings)
-There are 2 available atm, see the readme.md of each one for more info i.e. amount of images in training dataset, steps trained
-Note: they are not very good, more and better embeddings needed for the [sd-embeddings](https://github.com/hlky/sd-embeddings) repo
+Finally, open the file `ldm/utils.py` and find this line: `font = ImageFont.truetype('data/DejaVuSans.ttf', size=size)`. Comment it out and replace it with this: `font = ImageFont.load_default()`
 
-You use * in the prompt where you want the custom trained thing. Note: requires PHD in prompt crafting and messing around with sampler, steps, cfg, the prompt itself, to get anything resembling a good result (possibly caused by rubbish images used for training as well)
+<br>
+
+### Q: Why am I receiving an error about multiple devices detected?
+
+**A:** Make sure you are using the `--gpus 1` argument. If you are still receiving the error, open `main.py` and find the following lines:
+
+```
+if not cpu:
+    ngpu = len(lightning_config.trainer.gpus.strip(",").split(','))
+else:
+    ngpu = 1
+```
+
+Comment these lines out, then below them add `ngpu = 1`. Make sure that it is at the same indentation level as the line below it.
+
+<br>
+
+### Q: Why am I receiving an error about `if trainer.global_rank == 0:`?
+
+**A:** Open `main.py` and scroll to the end of the file. On the last few lines, comment out the line where it says `if trainer.global_rank == 0:` and the line below it.
+
+<br>
+
+### Q: Why am I receiving errors about shapes? (IE: value tensor of shape [1280] cannot be broadcast to indexing result of shape [0, 768])
+
+**A:** There are two known reasons for shape errors:
+
+- The sanity check is failing when starting Textual-Inversion training. Try leaving out the `--actual-resume` argument when launching main.py. Chances are, the next error you receive will be an Out of Memory Error. See earlier in the FAQ for that.
+- Stable Diffusion is erroring out when you try to use an embeddings file. This is likely because you ran the Textual-Inversion training with the wrong configuration. As of writing, TI and SD are not integrated. Make sure you have downloaded the `config/v1-finetune.yaml` file from this repo and that you use `--base configs/stable-diffusion/v1-finetune.yaml` when training embeddings. Retrain and try again.
+
+<br>
