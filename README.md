@@ -21,9 +21,9 @@ Essentially, this model will take some pictures of an object, style, etc. and le
 
 # How to Use
 
-Before you can do anything with the WebUI, you must first create an embedding file by training the Textual-Inversion model. Alternatively, you can test with one of the pre-made embeddings from [here](https://github.com/hlky/sd-embeddings). In the WebUI, place the embeddings file in the embeddings file upload box. Then you can reference the embedding by using `*` in your prompt. 
+Before you can do anything with the WebUI, you must first create an embedding file by training the Textual-Inversion model. Alternatively, you can test with one of the pre-made embeddings from [here](https://github.com/hlky/sd-embeddings). 
 
-> **WARNING:** This is a very memory-intensive model and, as of writing, is not optimized to work with SD. You will need an Nvidia GPU with at least 10GB of VRAM to even get this to train at all on your local device, and a GPU with 20GB+ to train in a reasonable amount of time. If you do not have the system resources, you should use Colab or stick with pretrained embeddings until SD is better supported.
+In the WebUI, place the embeddings file in the embeddings file upload box. Then you can reference the embedding by using `*` in your prompt. 
 
 Examples from the paper:
 ![](https://textual-inversion.github.io/static/images/editing/puppet.JPG)
@@ -33,6 +33,8 @@ Examples from the paper:
 # How to Train Textual-Inversion
 
 ** Training is best done by using the [original repo](https://github.com/rinongal/textual_inversion) **
+
+> **WARNING:** This is a very memory-intensive model and, as of writing, is not optimized to work with SD. You will need an Nvidia GPU with at least 10GB of VRAM to even get this to train at all on your local device, and a GPU with 20GB+ to train in a reasonable amount of time. If you do not have the system resources, you should use Colab or stick with pretrained embeddings until SD is better supported.
 
 **Note that these instructions are for training on your local device, instructions may vary for training in Colab.**
 
@@ -62,14 +64,14 @@ Place 3-5 images of the object/artstyle/scene/etc. into an empty folder.
 
   > --n gives the training run a name, which will also be used as the output folder name.
   
-  > --gpus tells the script how many CUDA-enabled GPUs you want to use. Leave at 1 unless you know what you're doing.
+  > --gpus Leave at 1 unless you know what you're doing.
   
   > --init-word is a single word the model will start with when looking at your images for the first time. Should be simple, ie: "sculpture", "girl", "mountains"
 
 
 ### **Step 3:** 
 
-The model will continue to train until you stop it by entering CTRL+C. The recommended training time is 3000-7000 epochs. You can see what step the run is on in the progress bar. You can also monitor progress by reviewing the images at `logs/<your run name>/images`. I recommend sorting that folder by date modified, they tend to get jumbled up otherwise. 
+The model will continue to train until you stop it by entering CTRL+C. The recommended training time is 3000-7000 iterations (global steps). You can see what step the run is on in the progress bar. You can also monitor progress by reviewing the images at `logs/<your run name>/images`. I recommend sorting that folder by date modified, they tend to get jumbled up otherwise.
 
 
 ### **Step 4:** 
@@ -82,7 +84,9 @@ Once stopped, you will find a number of embedding files under `logs/<your run na
 In the WebUI, upload the embedding file you just created. Now, when writing a prompt, you can use `*` to reference the whatever the embedding file describes.
 
 > "A picture of * in the style of Rembrandt"
+
 > "A photo of * as a corgi"
+
 > "A coffee mug in the style of *"
 
 <br>
@@ -97,9 +101,7 @@ Unofficial fork, more stable on Windows (8/28/22) ==> [nicolai256/Stable-textual
 - The model tends to converge faster and provide more accurate results when using language such as "a photo of" or "* as a photograph" in your prompts
 - When training Textual-Inversion, the paper says that using more than 5 images leads to less cohesive results. Some users seem to disagree. Try experimenting.
 - When training, more than one init-word can be specified by adding them to the list at `initializer_words: ["sculpture", "ice"]` in `v1-finetune.yaml`. Order may matter (unconfirmed)
-- You can train multiple embedding files, then merge them with `merge_embeddings.py -sd`
-
-```python merge_embeddings.py -sd --manager_ckpts /path/to/first/embedding.pt /path/to/second/embedding.pt [...] --output_path /path/to/output/embedding.pt```
+- You can train multiple embedding files, then merge them with `merge_embeddings.py -sd` to reference multiple things. See official repo for more details.
 
 <br>
 
@@ -143,7 +145,7 @@ else:
     ngpu = 1
 ```
 
-Comment these lines out, then below them add `ngpu = 1`. Make sure that it is at the same indentation level as the line below it.
+Comment these lines out, then below them add `ngpu = 1` (Or whatever # of GPUs you want to use). Make sure that it is at the same indentation level as the line below it.
 
 <br>
 
